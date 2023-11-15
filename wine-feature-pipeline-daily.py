@@ -2,6 +2,7 @@ import os
 
 
 def generate_wine(quality,
+        type,
         fixed_acidity_mean,
         fixed_acidity_std,
         volatile_acidity_mean,
@@ -30,7 +31,7 @@ def generate_wine(quality,
     import pandas as pd
     import random
 
-    df = pd.DataFrame({ 'type': [random.choice([0, 0, 0, 1])],
+    df = pd.DataFrame({'type': type,
                        'fixed_acidity': [random.gauss(fixed_acidity_mean, fixed_acidity_std)],
                        'volatile_acidity': [random.gauss(volatile_acidity_mean, volatile_acidity_std)],
                        'citric_acid': [random.gauss(citric_acid_mean, citric_acid_std)],
@@ -54,19 +55,34 @@ def get_random_wine():
     import pandas as pd
     import random
 
-    quality = round(random.gauss(5.82, 0.87))
-    wine_df = generate_wine(quality, 
-                            7.22, 1.3,
-                            0.34, 0.16,
-                            0.32, 0.15,
-                            5.44, 4.76,
-                            0.06, 0.04,
-                            30.5, 17.7,
-                            116,  56.5,
-                            0.99, 0,
-                            3.22, 0.16,
-                            0.53, 0.15,
-                            10.5, 1.19)
+    # Data parsing and cleanup
+    wine_df = pd.read_csv("./winequalityN.csv")
+    wine_df = wine_df.dropna()
+    wine_df['type'] = pd.get_dummies(wine_df['type'], dtype=int).drop('white',axis = 1)
+    new_names = {}
+    for name in wine_df.columns:
+        new_names[name] = name.lower().replace(' ', '_')
+    wine_df = wine_df.rename(columns=new_names)
+
+    # Data generation
+    quality = round(random.gauss(wine_df["quality"].mean(), wine_df["quality"].std()))
+
+    sub_df = wine_df.query("quality == @quality")
+    type = int(random.random() < sub_df["type"].mean())
+
+    wine_df = generate_wine(quality,
+                            type,
+                            sub_df["fixed_acidity"].mean(),        sub_df["fixed_acidity"].std(),
+                            sub_df["volatile_acidity"].mean(),     sub_df["volatile_acidity"].std(),
+                            sub_df["citric_acid"].mean(),          sub_df["citric_acid"].std(),
+                            sub_df["residual_sugar"].mean(),       sub_df["residual_sugar"].std(),
+                            sub_df["chlorides"].mean(),            sub_df["chlorides"].std(),
+                            sub_df["free_sulfur_dioxide"].mean(),  sub_df["free_sulfur_dioxide"].std(),
+                            sub_df["total_sulfur_dioxide"].mean(), sub_df["total_sulfur_dioxide"].std(),
+                            sub_df["density"].mean(),              sub_df["density"].std(),
+                            sub_df["ph"].mean(),                   sub_df["ph"].std(),
+                            sub_df["sulphates"].mean(),            sub_df["sulphates"].std(),
+                            sub_df["alcohol"].mean(),              sub_df["alcohol"].std())
 
     return wine_df
 
