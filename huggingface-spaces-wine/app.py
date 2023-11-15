@@ -54,7 +54,7 @@ demo = gr.Interface(
         gr.inputs.Number(default=0.531215, label="Sulphates"),
         gr.inputs.Number(default=10.491801, label="Alcohol"),
         ],
-    outputs=gr.Number())
+    outputs=gr.Number(label="Quality"))
 
 demo.launch(debug=True)
 
